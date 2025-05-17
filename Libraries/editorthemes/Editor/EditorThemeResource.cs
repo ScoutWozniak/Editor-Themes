@@ -4,13 +4,6 @@ using Sandbox;
 [GameResource( "Editor Theme", "etheme", "Theme for the editor", Icon = "pregnant_woman", IconBgColor = "#897ecf", IconFgColor = "#26214a" )]
 public class EditorThemeResource : GameResource
 {
-	[Button]
-	public void QuickApply()
-	{
-		ThemeEditorWidget.ApplyToEditor( ETheme );
-	}
-
-
 	public string Name { get; set; } = "Custom Editor Theme";
 	[TextArea]
 	public string Description { get; set; } = "A custom editor theme made by me!";

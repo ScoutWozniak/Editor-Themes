@@ -2,7 +2,7 @@
 using Sandbox;
 using System.Collections.Generic;
 
-[Dock( "Editor", "Example Editor Dock", "local_fire_department" )]
+[Dock( "Editor", "Theme Editor", "local_fire_department" )]
 public class ThemeEditorWidget : Widget
 {
 	ControlSheet MainSheet;
@@ -23,14 +23,13 @@ public class ThemeEditorWidget : Widget
 
 		WindowTitle = "Theme Editor";
 
-
-
 		// Create a Column Layout
 		Layout = Layout.Column();
 		// Give it some Margins/Spacing
 		Layout.Margin = 4;
 		Layout.Spacing = 4;
 		Layout.Alignment = TextFlag.Center;
+		Layout.AddStretchCell();
 
 		ResourceLayout = Layout.AddRow();
 
@@ -58,10 +57,10 @@ public class ThemeEditorWidget : Widget
 
 
 
-		var button = Layout.Add( new Button( "Save To Editor", "", this ) );
+		var button = Layout.Add( new Button( "Save", "", this ) );
 		button.Clicked += () =>
 		{
-			SaveTheme( theme );
+			SaveTheme( theme, LoadedResource );
 			ApplyToEditor( theme );
 			Refresh();
 		};
@@ -82,13 +81,22 @@ public class ThemeEditorWidget : Widget
 
 		Layout.Add( colorLabel );
 
-		ThemeLayout = Layout.AddColumn( stretch: 0 );
+		ThemeLayout = Layout.Column();
 
 		MainSheet = new ControlSheet();
 		RebuildThemes();
-		ThemeLayout.Add( MainSheet );
+		ThemeLayout.SizeConstraint = SizeConstraint.SetFixedSize;
+
+
+		var scrollArea = Layout.Add( new ScrollArea( this ) { Canvas = new Widget { Layout = Layout.Column() } }, 1 );
+		var scrollLayout = scrollArea.Canvas.Layout;
+
+		scrollLayout.Add( MainSheet );
+		scrollLayout.Spacing = 4;
+
 		Refresh();
-		ThemeLayout.AddStretchCell();
+
+		Layout.Add( ThemeLayout );
 	}
 
 	void Refresh()
@@ -132,7 +140,7 @@ public class ThemeEditorWidget : Widget
 
 
 
-	public static void SaveTheme( EditorTheme theme )
+	public static void SaveTheme( EditorTheme theme, EditorThemeResource loadedResource = null )
 	{
 		Dictionary<string, string> dictColors = new();
 		foreach ( var prop in theme.GetType().GetProperties() )
@@ -148,6 +156,11 @@ public class ThemeEditorWidget : Widget
 			}
 		}
 		Editor.FileSystem.Root.WriteJson( "addons/tools/assets/styles/theme.json", dictColors );
+
+		if ( loadedResource.IsValid() )
+		{
+			loadedResource.ETheme = theme;
+		}
 	}
 
 	public static void ApplyToEditor( EditorTheme theme )
