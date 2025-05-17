@@ -2,7 +2,7 @@
 using Sandbox;
 using System.Collections.Generic;
 
-
+[Dock( "Editor", "Example Editor Dock", "local_fire_department" )]
 public class ThemeEditorWidget : Widget
 {
 	ControlSheet MainSheet;
@@ -12,6 +12,7 @@ public class ThemeEditorWidget : Widget
 
 	Layout ResourceLayout;
 
+	Layout ThemeLayout { get; set; }
 
 	[ResourceType( "etheme" )] string ThemeResourcePath { get; set; } = "";
 
@@ -30,11 +31,8 @@ public class ThemeEditorWidget : Widget
 		Layout.Margin = 4;
 		Layout.Spacing = 4;
 		Layout.Alignment = TextFlag.Center;
-		Size = new Vector2( 400, 600 );
 
 		ResourceLayout = Layout.AddRow();
-
-
 
 		TranslucentBackground = true;
 		WindowOpacity = 0.99f;
@@ -80,13 +78,17 @@ public class ThemeEditorWidget : Widget
 		colorLabel.Alignment = TextFlag.Center;
 		colorLabel.SetStyles( $"font-weight: 600; color: {Editor.Theme.Text}; text-align: center;" );
 
+
+
 		Layout.Add( colorLabel );
 
+		ThemeLayout = Layout.AddColumn( stretch: 0 );
+
 		MainSheet = new ControlSheet();
-		MainSheet.Alignment = TextFlag.Center;
-		Layout.Add( MainSheet );
 		RebuildThemes();
+		ThemeLayout.Add( MainSheet );
 		Refresh();
+		ThemeLayout.AddStretchCell();
 	}
 
 	void Refresh()
@@ -111,6 +113,11 @@ public class ThemeEditorWidget : Widget
 				theme.GetType().GetProperty( col.Key )?.SetValue( theme, col.Value.ToInt() );
 				continue;
 			}
+			if ( col.Key == "DefaultFont" || col.Key == "HeadingFont" )
+			{
+				theme.GetType().GetProperty( col.Key )?.SetValue( theme, col.Value );
+				continue;
+			}
 			var color = Color.Parse( col.Value );
 			if ( col.Key == "" || color == null )
 			{
@@ -130,7 +137,7 @@ public class ThemeEditorWidget : Widget
 		Dictionary<string, string> dictColors = new();
 		foreach ( var prop in theme.GetType().GetProperties() )
 		{
-			if ( prop.Name == "RowHeight" || prop.Name == "ControlHeight" || prop.Name == "ControlRadius" )
+			if ( prop.Name == "RowHeight" || prop.Name == "ControlHeight" || prop.Name == "ControlRadius" || prop.Name == "DefaultFont" || prop.Name == "HeadingFont" )
 			{
 				dictColors.Add( prop.Name, prop.GetValue( theme ).ToString() );
 				continue;
@@ -160,6 +167,6 @@ public class ThemeEditorWidget : Widget
 
 	public static void ResetToDefault( EditorTheme theme )
 	{
-		theme.SetDefaults();
+		theme = new EditorTheme();
 	}
 }
